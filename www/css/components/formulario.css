@@ -1,0 +1,117 @@
+/**
+ * @file formulario.css
+ * @description Estilos da aba Lançamento — campos dinâmicos, GPS, pedágio e avaliação.
+ */
+
+.gps-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+.gps-status { font-size: var(--font-size-xs); color: var(--color-text-dim); }
+.gps-status.captured { color: var(--color-success); }
+
+.btn-gps {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  width: 100%;
+}
+.btn-gps:hover { border-color: var(--color-primary); }
+
+.dynamic-fields {
+  background: rgba(59, 130, 246, 0.06);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.field-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-dim);
+  margin-bottom: var(--spacing-sm);
+}
+
+.pedagio-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+.pedagio-contador {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.btn-quick {
+  padding: 8px 12px;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--transition);
+}
+.btn-quick:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.avaliacao-section {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-md);
+  overflow: hidden;
+}
+.avaliacao-section summary {
+  padding: var(--spacing-md);
+  cursor: pointer;
+  list-style: none;
+  background: var(--color-bg-elevated);
+}
+.avaliacao-section summary::-webkit-details-marker { display: none; }
+.summary-check { pointer-events: none; }
+.summary-check input { pointer-events: auto; }
+.avaliacao-content {
+  padding: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+}
+
+.star-rating { display: flex; gap: var(--spacing-xs); }
+.star {
+  background: none;
+  border: none;
+  font-size: 1.75rem;
+  color: var(--color-text-dim);
+  cursor: pointer;
+  padding: 2px;
+  transition: color var(--transition), transform var(--transition);
+  line-height: 1;
+}
+.star.active, .star:hover {
+  color: var(--color-star);
+  transform: scale(1.1);
+}
+
+.perfil-buttons { display: flex; flex-wrap: wrap; gap: var(--spacing-sm); }
+.btn-perfil {
+  padding: 8px 14px;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: inherit;
+}
+.btn-perfil.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}

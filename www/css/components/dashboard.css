@@ -1,0 +1,92 @@
+/**
+ * @file dashboard.css
+ * @description Estilos da aba Dashboard — métricas, highlight e gráfico.
+ */
+
+.highlight-card {
+  background: linear-gradient(135deg, #1e3a5f 0%, #1e293b 100%);
+  border-color: var(--color-primary);
+  text-align: center;
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-glow);
+}
+.highlight-label {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.highlight-value {
+  display: block;
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  color: var(--color-primary);
+  margin: var(--spacing-sm) 0;
+  letter-spacing: -0.02em;
+}
+.highlight-meta {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-dim);
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+.metric-card {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--spacing-xs);
+}
+.metric-icon { font-size: 1.5rem; }
+.metric-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.metric-value { font-size: var(--font-size-lg); font-weight: 700; }
+.metric-unit { font-size: var(--font-size-xs); color: var(--color-text-dim); }
+
+.chart-wrapper {
+  position: relative;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chart-empty {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-lg);
+}
+
+.trip-selector-card label {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-sm);
+}
+.trip-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+@media (min-width: 481px) {
+  .metrics-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (min-width: 768px) {
+  .highlight-value { font-size: 2.5rem; }
+}

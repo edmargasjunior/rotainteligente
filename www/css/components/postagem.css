@@ -1,0 +1,77 @@
+/**
+ * @file postagem.css
+ * @description Estilos da Central de Postagem — cards de review e ações.
+ */
+
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.review-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-sm);
+  gap: var(--spacing-sm);
+}
+.review-header h3 { font-size: var(--font-size-base); font-weight: 600; }
+.review-stars { color: var(--color-star); font-size: var(--font-size-sm); white-space: nowrap; }
+
+.review-meta {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-md);
+}
+
+.review-comentario {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  font-style: italic;
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-sm);
+  background: var(--color-bg-input);
+  border-radius: var(--radius-sm);
+}
+
+.review-preview {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  white-space: pre-wrap;
+  margin-bottom: var(--spacing-md);
+  display: none;
+}
+.review-preview.visible { display: block; }
+
+.review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+.review-actions .btn {
+  flex: 1;
+  min-width: 120px;
+  font-size: var(--font-size-sm);
+  padding: 10px 14px;
+}
+
+.badge-revisado {
+  display: inline-block;
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--color-success);
+  font-size: var(--font-size-xs);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+}
