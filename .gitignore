@@ -1,0 +1,27 @@
+# Dependências
+node_modules/
+
+# Capacitor — pasta web gerada (copiada da raiz)
+www/
+
+# Android / Gradle
+android/.gradle/
+android/.idea/
+android/local.properties
+android/app/build/
+android/build/
+android/captures/
+*.apk
+*.aab
+*.jks
+*.keystore
+
+# IDE e SO
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
+
+# Capacitor cache
+.capacitor/
