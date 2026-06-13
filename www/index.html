@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="RotaInteligente — Gestão e Inteligência de Viagem offline-first">
+  <meta name="theme-color" content="#0f172a">
+  <title>RotaInteligente</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components/dashboard.css">
+  <link rel="stylesheet" href="css/components/formulario.css">
+  <link rel="stylesheet" href="css/components/historico.css">
+  <link rel="stylesheet" href="css/components/postagem.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+</head>
+<body>
+  <div id="app">
+
+    <!-- Toast de feedback -->
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+    <main id="main-content">
+
+      <!-- ==================== DASHBOARD ==================== -->
+      <section id="tab-dashboard" class="tab-panel active" role="tabpanel" aria-labelledby="nav-dashboard">
+        <header class="panel-header">
+          <h1>RotaInteligente</h1>
+          <p class="subtitle">Gestão inteligente da sua viagem</p>
+        </header>
+
+        <div id="dashboard-empty" class="card empty-state">
+          <div class="empty-icon" aria-hidden="true">🧭</div>
+          <p>Nenhuma viagem ativa. Comece registrando sua aventura!</p>
+          <button type="button" class="btn btn-primary" id="btn-nova-viagem-empty">Iniciar Nova Viagem</button>
+        </div>
+
+        <div id="dashboard-content" class="hidden">
+          <div class="card trip-selector-card">
+            <label for="select-viagem-ativa">Viagem Ativa</label>
+            <select id="select-viagem-ativa" aria-label="Selecionar viagem ativa"></select>
+            <div class="trip-actions">
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-nova-viagem">+ Nova Viagem</button>
+              <button type="button" class="btn btn-danger btn-sm" id="btn-encerrar-viagem">Encerrar Viagem</button>
+            </div>
+          </div>
+
+          <div class="card highlight-card">
+            <span class="highlight-label">Gasto Total Acumulado</span>
+            <span class="highlight-value" id="total-geral" aria-live="polite">R$ 0,00</span>
+            <span class="highlight-meta" id="distancia-info">0 km percorridos</span>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <span class="metric-icon" aria-hidden="true">⛽</span>
+              <span class="metric-label">Consumo Médio</span>
+              <span class="metric-value" id="metric-kml">—</span>
+              <span class="metric-unit">KM/L</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-icon" aria-hidden="true">🏨</span>
+              <span class="metric-label">Custo por Diária</span>
+              <span class="metric-value" id="metric-diaria">—</span>
+              <span class="metric-unit">média</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-icon" aria-hidden="true">🛣️</span>
+              <span class="metric-label">Custo por KM</span>
+              <span class="metric-value" id="metric-km">—</span>
+              <span class="metric-unit">deslocamento</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-icon" aria-hidden="true">🍽️</span>
+              <span class="metric-label">Alim. per Capita</span>
+              <span class="metric-value" id="metric-alimentacao">—</span>
+              <span class="metric-unit">média</span>
+            </div>
+          </div>
+
+          <div class="card chart-card">
+            <h2 class="card-title">Gastos por Categoria</h2>
+            <div class="chart-wrapper">
+              <canvas id="chart-categorias" aria-label="Gráfico de rosca dos gastos por categoria"></canvas>
+            </div>
+            <p id="chart-empty" class="chart-empty hidden">Sem gastos registrados para exibir.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== LANÇAMENTO ==================== -->
+      <section id="tab-lancamento" class="tab-panel" role="tabpanel" aria-labelledby="nav-lancamento" hidden>
+        <header class="panel-header">
+          <h1>Lançamento</h1>
+          <p class="subtitle">Registre um gasto da viagem ativa</p>
+        </header>
+
+        <div id="lancamento-sem-viagem" class="card empty-state hidden">
+          <div class="empty-icon" aria-hidden="true">🧭</div>
+          <p>Nenhuma viagem ativa no momento.</p>
+          <button type="button" class="btn btn-primary" id="btn-nova-viagem-lancamento">Iniciar Nova Viagem</button>
+        </div>
+
+        <form id="form-gasto" class="card form-card" novalidate>
+          <div class="field">
+            <label for="input-valor">Valor Total (R$)</label>
+            <input type="text" id="input-valor" inputmode="decimal" placeholder="Ex: 150,00" required autocomplete="off">
+          </div>
+
+          <div class="field">
+            <label for="input-local">Nome do Local</label>
+            <input type="text" id="input-local" placeholder="Ex: Posto Shell BR-101" autocomplete="off">
+          </div>
+
+          <div class="field gps-field">
+            <button type="button" class="btn btn-gps" id="btn-gps">
+              <span aria-hidden="true">📍</span> Capturar Coordenadas GPS
+            </button>
+            <span id="gps-status" class="gps-status">Coordenadas não capturadas</span>
+          </div>
+
+          <div class="field">
+            <label for="select-categoria">Categoria</label>
+            <select id="select-categoria" required>
+              <option value="">Selecione...</option>
+              <option value="Combustível">Combustível</option>
+              <option value="Alimentação">Alimentação</option>
+              <option value="Hospedagem">Hospedagem</option>
+              <option value="Pedágio">Pedágio</option>
+              <option value="Outros">Outros</option>
+            </select>
+          </div>
+
+          <!-- Campos dinâmicos: Combustível -->
+          <div id="fields-combustivel" class="dynamic-fields hidden">
+            <div class="field">
+              <label for="input-tipo-combustivel">Tipo de Combustível</label>
+              <select id="input-tipo-combustivel">
+                <option value="Gasolina">Gasolina</option>
+                <option value="Álcool">Álcool</option>
+                <option value="Diesel">Diesel</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="input-litros">Litros</label>
+                <input type="text" id="input-litros" inputmode="decimal" placeholder="Ex: 42,5" autocomplete="off">
+              </div>
+              <div class="field">
+                <label for="input-preco-litro">Preço/Litro</label>
+                <input type="text" id="input-preco-litro" inputmode="decimal" placeholder="Ex: 5,89" autocomplete="off">
+              </div>
+            </div>
+            <div class="field">
+              <label for="input-km-atual">KM Atual do Painel</label>
+              <input type="text" id="input-km-atual" inputmode="decimal" placeholder="Ex: 45.230,5" autocomplete="off">
+            </div>
+            <label class="checkbox-label">
+              <input type="checkbox" id="input-tanque-cheio">
+              <span>Completou o tanque?</span>
+            </label>
+          </div>
+
+          <!-- Campos dinâmicos: Hospedagem -->
+          <div id="fields-hospedagem" class="dynamic-fields hidden">
+            <div class="field">
+              <label for="input-diarias">Quantidade de Diárias</label>
+              <input type="text" id="input-diarias" inputmode="numeric" placeholder="Ex: 2" autocomplete="off">
+            </div>
+          </div>
+
+          <!-- Campos dinâmicos: Alimentação -->
+          <div id="fields-alimentacao" class="dynamic-fields hidden">
+            <div class="field">
+              <label for="input-pessoas">Quantidade de Pessoas</label>
+              <input type="text" id="input-pessoas" inputmode="numeric" placeholder="Ex: 4" autocomplete="off">
+            </div>
+          </div>
+
+          <!-- Campos dinâmicos: Pedágio -->
+          <div id="fields-pedagio" class="dynamic-fields hidden">
+            <p class="field-hint">Lançamento rápido de praças repetidas:</p>
+            <div class="pedagio-actions">
+              <button type="button" class="btn btn-quick" data-pedagio="add" data-valor="1">+1 praça</button>
+              <button type="button" class="btn btn-quick" data-pedagio="add" data-valor="2">+2 praças</button>
+              <button type="button" class="btn btn-quick" data-pedagio="add" data-valor="5">+5 praças</button>
+              <button type="button" class="btn btn-quick" data-pedagio="mul" data-valor="2">×2 valor</button>
+              <button type="button" class="btn btn-quick" data-pedagio="mul" data-valor="3">×3 valor</button>
+            </div>
+            <span id="pedagio-contador" class="pedagio-contador">Praças acumuladas: 0</span>
+          </div>
+
+          <!-- Seção expansível: Avaliar Local -->
+          <details class="avaliacao-section" id="avaliacao-section">
+            <summary>
+              <label class="checkbox-label summary-check">
+                <input type="checkbox" id="input-avaliar">
+                <span>Avaliar Local</span>
+              </label>
+            </summary>
+            <div class="avaliacao-content" id="avaliacao-content">
+              <div class="field">
+                <span class="field-label">Estrelas</span>
+                <div class="star-rating" id="star-rating" role="radiogroup" aria-label="Avaliação em estrelas">
+                  <button type="button" class="star" data-value="1" aria-label="1 estrela">★</button>
+                  <button type="button" class="star" data-value="2" aria-label="2 estrelas">★</button>
+                  <button type="button" class="star" data-value="3" aria-label="3 estrelas">★</button>
+                  <button type="button" class="star" data-value="4" aria-label="4 estrelas">★</button>
+                  <button type="button" class="star" data-value="5" aria-label="5 estrelas">★</button>
+                </div>
+              </div>
+              <div class="field">
+                <span class="field-label">Perfil</span>
+                <div class="perfil-buttons" id="perfil-buttons">
+                  <button type="button" class="btn-perfil active" data-perfil="Família">Família</button>
+                  <button type="button" class="btn-perfil" data-perfil="Casal">Casal</button>
+                  <button type="button" class="btn-perfil" data-perfil="Solo">Solo</button>
+                  <button type="button" class="btn-perfil" data-perfil="Trabalho">Trabalho</button>
+                </div>
+              </div>
+              <div class="field">
+                <label for="input-comentario">Comentário (diário de bordo)</label>
+                <textarea id="input-comentario" rows="3" placeholder="Conte sua experiência sincera neste local..."></textarea>
+              </div>
+            </div>
+          </details>
+
+          <button type="submit" class="btn btn-primary btn-block" id="btn-salvar-gasto">Salvar Gasto</button>
+        </form>
+      </section>
+
+      <!-- ==================== HISTÓRICO ==================== -->
+      <section id="tab-historico" class="tab-panel" role="tabpanel" aria-labelledby="nav-historico" hidden>
+        <header class="panel-header">
+          <h1>Histórico</h1>
+          <p class="subtitle">Gastos da viagem ativa</p>
+        </header>
+        <ul id="lista-historico" class="historico-list" aria-label="Lista de gastos"></ul>
+        <div id="historico-empty" class="card empty-state hidden">
+          <div class="empty-icon" aria-hidden="true">📋</div>
+          <p>Nenhum gasto registrado nesta viagem.</p>
+        </div>
+      </section>
+
+      <!-- ==================== CENTRAL DE POSTAGEM ==================== -->
+      <section id="tab-postagem" class="tab-panel" role="tabpanel" aria-labelledby="nav-postagem" hidden>
+        <header class="panel-header">
+          <h1>Central de Postagem</h1>
+          <p class="subtitle">Reviews para Google Maps — pós-viagem</p>
+        </header>
+
+        <div class="card">
+          <label for="select-viagem-postagem">Viagem Encerrada</label>
+          <select id="select-viagem-postagem" aria-label="Selecionar viagem encerrada"></select>
+        </div>
+
+        <div id="postagem-empty" class="card empty-state">
+          <div class="empty-icon" aria-hidden="true">✍️</div>
+          <p>Encerre uma viagem e avalie locais durante os lançamentos para preparar reviews.</p>
+        </div>
+
+        <div id="lista-reviews" class="reviews-list" hidden></div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav" aria-label="Navegação principal">
+      <button type="button" class="nav-item active" data-tab="dashboard" id="nav-dashboard" aria-current="page">
+        <span class="nav-icon" aria-hidden="true">🏠</span>
+        <span class="nav-label">Dashboard</span>
+      </button>
+      <button type="button" class="nav-item" data-tab="lancamento" id="nav-lancamento">
+        <span class="nav-icon" aria-hidden="true">➕</span>
+        <span class="nav-label">Lançamento</span>
+      </button>
+      <button type="button" class="nav-item" data-tab="historico" id="nav-historico">
+        <span class="nav-icon" aria-hidden="true">📋</span>
+        <span class="nav-label">Histórico</span>
+      </button>
+      <button type="button" class="nav-item" data-tab="postagem" id="nav-postagem">
+        <span class="nav-icon" aria-hidden="true">✍️</span>
+        <span class="nav-label">Postagem</span>
+      </button>
+    </nav>
+
+    <!-- Modal: Nova Viagem -->
+    <dialog id="modal-nova-viagem" class="modal">
+      <form id="form-nova-viagem" method="dialog" class="modal-content">
+        <h2>Iniciar Nova Viagem</h2>
+        <div class="field">
+          <label for="input-nome-viagem">Nome da Viagem</label>
+          <input type="text" id="input-nome-viagem" placeholder="Ex: Road Trip Sul 2026" required autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="select-veiculo">Veículo</label>
+          <select id="select-veiculo" required>
+            <option value="carro">Carro</option>
+            <option value="moto">Moto</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="input-km-inicial">KM Inicial do Painel</label>
+          <input type="text" id="input-km-inicial" inputmode="decimal" placeholder="Ex: 45.000" required autocomplete="off">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="btn-cancelar-viagem">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Iniciar Viagem</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- Modal: Encerrar Viagem -->
+    <dialog id="modal-encerrar-viagem" class="modal">
+      <form id="form-encerrar-viagem" method="dialog" class="modal-content">
+        <h2>Encerrar Viagem</h2>
+        <p class="modal-desc">Informe o KM Final da Garagem para calcular métricas definitivas.</p>
+        <div class="field">
+          <label for="input-km-final">KM Final da Garagem</label>
+          <input type="text" id="input-km-final" inputmode="decimal" placeholder="Ex: 46.850,5" required autocomplete="off">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="btn-cancelar-encerrar">Cancelar</button>
+          <button type="submit" class="btn btn-danger">Encerrar Viagem</button>
+        </div>
+      </form>
+    </dialog>
+
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
