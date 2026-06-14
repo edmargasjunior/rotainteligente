@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">RotaInteligente</string>
+    <string name="title_activity_main">RotaInteligente</string>
+    <string name="package_name">com.rotainteligente.app</string>
+    <string name="custom_url_scheme">com.rotainteligente.app</string>
+</resources>

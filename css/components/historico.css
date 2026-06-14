@@ -1,0 +1,67 @@
+/**
+ * @file historico.css
+ * @description Estilos da aba Histórico — lista cronológica de gastos.
+ */
+
+.historico-list { list-style: none; }
+
+.historico-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  animation: fadeIn 0.2s ease;
+}
+
+.historico-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+.historico-icon.combustivel { background: rgba(249, 115, 22, 0.15); }
+.historico-icon.alimentacao { background: rgba(34, 197, 94, 0.15); }
+.historico-icon.hospedagem { background: rgba(139, 92, 246, 0.15); }
+.historico-icon.pedagio { background: rgba(6, 182, 212, 0.15); }
+.historico-icon.outros { background: rgba(100, 116, 139, 0.15); }
+
+.historico-info { flex: 1; min-width: 0; }
+.historico-info h3 {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.historico-info p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.historico-valor {
+  font-weight: 700;
+  font-size: var(--font-size-base);
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+.btn-delete {
+  background: none;
+  border: none;
+  color: var(--color-danger);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  transition: background var(--transition);
+  flex-shrink: 0;
+}
+.btn-delete:hover { background: rgba(239, 68, 68, 0.15); }
