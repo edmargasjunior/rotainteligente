@@ -1,129 +1,238 @@
 /**
  * @file geo.js
- * @description Helper de geolocalização para captura de coordenadas GPS.
- *
- * Prioriza o plugin Capacitor Geolocation em apps Android nativas e faz
- * fallback para a API Web `navigator.geolocation`. Quando indisponível,
- * simula coordenadas (útil em desktop/desenvolvimento).
- *
- * @module utils/geo
- * @dependencies Capacitor (opcional, injetado globalmente no WebView nativo).
+ * @description Geolocalização, cálculo de distância e monitoramento GPS econômico.
+ * Timestamps absolutos (Date.now()) — sem setInterval para lógica crítica.
+ * Exposto em window.RotaInteligente.geo
  */
 
-/**
- * @typedef {Object} Coordenadas
- * @property {number} lat - Latitude.
- * @property {number} lng - Longitude.
- * @property {boolean} simulado - Indica se as coordenadas foram simuladas.
- */
+(function (global) {
+  'use strict';
 
-/**
- * Verifica se a aplicação está rodando em plataforma nativa Capacitor.
- *
- * @returns {boolean} `true` se Android/iOS via Capacitor.
- */
-export function isNativePlatform() {
-  return Boolean(window.Capacitor?.isNativePlatform?.());
-}
+  /** Intervalo mínimo entre registros GPS em segundo plano (30 min). */
+  const GPS_INTERVALO_MS = 30 * 60 * 1000;
 
-/**
- * Simula coordenadas próximas a São Paulo (fallback de desenvolvimento).
- *
- * @returns {Coordenadas} Coordenadas simuladas com flag `simulado: true`.
- */
-export function simularCoordenadas() {
-  return {
-    lat: -23.55052 + (Math.random() * 0.1 - 0.05),
-    lng: -46.633308 + (Math.random() * 0.1 - 0.05),
-    simulado: true,
-  };
-}
+  /** Distância mínima entre registros GPS em segundo plano (10 km). */
+  const GPS_DISTANCIA_KM = 10;
 
-/**
- * Captura coordenadas via Capacitor Geolocation (Android/iOS nativo).
- *
- * @returns {Promise<Coordenadas>} Coordenadas reais do dispositivo.
- * @throws {Error} Se permissão negada ou falha na captura.
- */
-async function capturarViaCapacitor() {
-  const Geolocation = window.Capacitor?.Plugins?.Geolocation;
-  if (!Geolocation) throw new Error('Plugin Geolocation indisponível.');
-
-  const perm = await Geolocation.requestPermissions();
-  if (perm.location === 'denied' || perm.coarseLocation === 'denied') {
-    throw new Error('Permissão de localização negada.');
+  function isNativePlatform() {
+    return Boolean(global.Capacitor?.isNativePlatform?.());
   }
 
-  const pos = await Geolocation.getCurrentPosition({
-    enableHighAccuracy: true,
-    timeout: 10000,
-  });
+  function simularCoordenadas() {
+    return {
+      lat: -19.91668 + (Math.random() * 0.02 - 0.01),
+      lng: -43.93449 + (Math.random() * 0.02 - 0.01),
+      simulado: true,
+      timestamp: Date.now(),
+      velocidadeKmh: 0,
+    };
+  }
 
-  return {
-    lat: pos.coords.latitude,
-    lng: pos.coords.longitude,
-    simulado: false,
-  };
-}
+  /**
+   * Distância Haversine entre dois pontos em metros.
+   * @param {number} lat1
+   * @param {number} lng1
+   * @param {number} lat2
+   * @param {number} lng2
+   * @returns {number}
+   */
+  function haversineMetros(lat1, lng1, lat2, lng2) {
+    const R = 6371000;
+    const toRad = (d) => (d * Math.PI) / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const a = Math.sin(dLat / 2) ** 2
+      + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
 
-/**
- * Captura coordenadas via API Web Geolocation do navegador.
- *
- * @returns {Promise<Coordenadas>} Coordenadas reais do navegador.
- * @throws {Error} Se API indisponível ou usuário negou permissão.
- */
-function capturarViaWeb() {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error('Geolocalização não suportada.'));
-      return;
+  /**
+   * Converte m/s para km/h.
+   * @param {number|null} ms
+   * @returns {number}
+   */
+  function msParaKmh(ms) {
+    if (ms === null || ms === undefined || !Number.isFinite(ms) || ms < 0) return 0;
+    return ms * 3.6;
+  }
+
+  async function capturarViaCapacitor() {
+    const Geolocation = global.Capacitor?.Plugins?.Geolocation;
+    if (!Geolocation) throw new Error('Plugin Geolocation indisponível.');
+
+    const perm = await Geolocation.requestPermissions();
+    if (perm.location === 'denied' || perm.coarseLocation === 'denied') {
+      throw new Error('Permissão de localização negada.');
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => resolve({
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude,
-        simulado: false,
-      }),
-      (err) => reject(err),
-      { enableHighAccuracy: true, timeout: 8000 }
-    );
-  });
-}
+    const pos = await Geolocation.getCurrentPosition({
+      enableHighAccuracy: true,
+      timeout: 10000,
+    });
 
-/**
- * Obtém coordenadas GPS do dispositivo com cadeia de fallback inteligente.
- *
- * Ordem de tentativa:
- * 1. Capacitor Geolocation (app nativo)
- * 2. navigator.geolocation (navegador)
- * 3. Simulação (desktop/dev)
- *
- * @returns {Promise<Coordenadas>} Coordenadas capturadas ou simuladas.
- */
-export async function capturarCoordenadas() {
-  if (isNativePlatform() && window.Capacitor?.Plugins?.Geolocation) {
+    return {
+      lat: pos.coords.latitude,
+      lng: pos.coords.longitude,
+      simulado: false,
+      timestamp: Date.now(),
+      velocidadeKmh: msParaKmh(pos.coords.speed),
+    };
+  }
+
+  function capturarViaWeb() {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocalização não suportada.'));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          simulado: false,
+          timestamp: Date.now(),
+          velocidadeKmh: msParaKmh(pos.coords.speed),
+        }),
+        (err) => reject(err),
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    });
+  }
+
+  /**
+   * Captura posição única com cadeia de fallback.
+   * @param {boolean} [semSimulacao=false] - Se true, rejeita em vez de simular.
+   * @returns {Promise<Object>}
+   */
+  async function capturarCoordenadas(semSimulacao = false) {
+    if (isNativePlatform() && global.Capacitor?.Plugins?.Geolocation) {
+      try {
+        return await capturarViaCapacitor();
+      } catch {
+        /* fallback */
+      }
+    }
+
     try {
-      return await capturarViaCapacitor();
+      return await capturarViaWeb();
     } catch {
-      /* fallback para web ou simulação */
+      if (semSimulacao) throw new Error('GPS indisponível.');
+      return simularCoordenadas();
     }
   }
 
-  try {
-    return await capturarViaWeb();
-  } catch {
-    return simularCoordenadas();
+  function formatarCoordenadas(coords) {
+    const sufixo = coords.simulado ? ' (simulado)' : '';
+    return `📍 ${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}${sufixo}`;
   }
-}
 
-/**
- * Formata coordenadas para exibição na UI.
- *
- * @param {Coordenadas} coords - Objeto de coordenadas.
- * @returns {string} Texto formatado para o status GPS.
- */
-export function formatarCoordenadas(coords) {
-  const sufixo = coords.simulado ? ' (simulado)' : '';
-  return `📍 ${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}${sufixo}`;
-}
+  /**
+   * Monitor GPS com watchPosition — callbacks orientados a eventos (sem setInterval).
+   */
+  class GpsMonitor {
+    constructor() {
+      /** @type {number|null} */
+      this._watchId = null;
+      /** @type {function(Object): void|null} */
+      this._onUpdate = null;
+      this._ultimaPosicao = null;
+    }
+
+    /**
+     * @param {function(Object): void} onUpdate
+     * @returns {boolean}
+     */
+    iniciar(onUpdate) {
+      this.parar();
+      if (!navigator.geolocation) return false;
+
+      this._onUpdate = onUpdate;
+      this._watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          const atual = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            timestamp: Date.now(),
+            velocidadeKmh: msParaKmh(pos.coords.speed),
+            simulado: false,
+          };
+          this._ultimaPosicao = atual;
+          this._onUpdate?.(atual);
+        },
+        () => { /* silencioso — fallback no manager */ },
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+      );
+      return true;
+    }
+
+    parar() {
+      if (this._watchId !== null && navigator.geolocation) {
+        navigator.geolocation.clearWatch(this._watchId);
+        this._watchId = null;
+      }
+      this._onUpdate = null;
+    }
+
+    /** @returns {Object|null} */
+    getUltimaPosicao() {
+      return this._ultimaPosicao;
+    }
+  }
+
+  /**
+   * Verifica se deve registrar GPS em segundo plano (30 min OU 10 km).
+   * @param {Object} estado - { ultimoRegistroTimestamp, distanciaDesdeUltimoRegistroKm }
+   * @param {number} [agora=Date.now()]
+   * @returns {boolean}
+   */
+  function deveRegistrarGpsBackground(estado, agora = Date.now()) {
+    if (!estado?.ultimoRegistroTimestamp) return true;
+    const tempoOk = (agora - estado.ultimoRegistroTimestamp) >= GPS_INTERVALO_MS;
+    const distOk = (estado.distanciaDesdeUltimoRegistroKm || 0) >= GPS_DISTANCIA_KM;
+    return tempoOk || distOk;
+  }
+
+  /**
+   * Ponto de extensão futura — plugin Capacitor Background Geolocation no Android.
+   * Mantido comentado como referência arquitetural.
+   */
+  function configurarServicoBackground() {
+    /*
+    // FUTURO: Capacitor Background Geolocation
+    // import { BackgroundGeolocation } from '@capacitor-community/background-geolocation';
+    //
+    // await BackgroundGeolocation.configure({
+    //   notificationTitle: 'RotaInteligente',
+    //   notificationText: 'Monitorando sua viagem em segundo plano',
+    //   distanceFilter: 100,
+    //   stopOnTerminate: false,
+    //   startOnBoot: false,
+    // });
+    //
+    // BackgroundGeolocation.addListener('location', (location) => {
+    //   global.RotaInteligente.app?.viagemManager?.processarAtualizacaoGps(
+    //     viagemIdAtiva,
+    //     { lat: location.latitude, lng: location.longitude, timestamp: Date.now(), velocidadeKmh: location.speed * 3.6 }
+    //   );
+    // });
+    //
+    // await BackgroundGeolocation.start();
+    */
+  }
+
+  global.RotaInteligente = global.RotaInteligente || {};
+  global.RotaInteligente.geo = {
+    isNativePlatform,
+    simularCoordenadas,
+    capturarCoordenadas,
+    formatarCoordenadas,
+    haversineMetros,
+    msParaKmh,
+    GpsMonitor,
+    deveRegistrarGpsBackground,
+    configurarServicoBackground,
+    GPS_INTERVALO_MS,
+    GPS_DISTANCIA_KM,
+  };
+})(window);

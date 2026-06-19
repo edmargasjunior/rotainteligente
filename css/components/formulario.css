@@ -115,3 +115,35 @@
   border-color: var(--color-primary);
   color: #fff;
 }
+
+.preview-rota-conforto {
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px dashed rgba(139, 92, 246, 0.4);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+.preview-rota-titulo {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: #a78bfa;
+  margin: 0 0 var(--spacing-xs);
+}
+.preview-rota-meta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: 0 0 var(--spacing-sm);
+}
+.preview-rota-lista {
+  margin: 0;
+  padding-left: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-dim);
+}
+.preview-rota-lista li { margin-bottom: var(--spacing-xs); }
+.preview-rota-alerta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+  margin: 0 0 var(--spacing-sm);
+  font-style: italic;
+}
