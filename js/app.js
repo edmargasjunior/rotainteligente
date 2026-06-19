@@ -1,161 +1,167 @@
 /**
  * @file app.js
- * @description Inicializador da SPA RotaInteligente — roteamento de abas e injeção de dependências.
- *
- * Responsabilidades:
- * - Instanciar o Singleton `ViagemManager` (Model).
- * - Injetar o Model nos Controllers (Form, Dash, Post).
- * - Gerenciar navegação Bottom Nav (roteador de abas).
- * - Exibir toasts globais de feedback.
- *
- * @module app
- * @dependencies
- *   - ./models/ViagemManager.js
- *   - ./controllers/FormController.js
- *   - ./controllers/DashController.js
- *   - ./controllers/PostController.js
+ * @description Inicializador da SPA RotaInteligente — roteamento, monitor GPS e injeção de dependências.
+ * Exposto em window.RotaInteligente.app
  */
 
-import { ViagemManager } from './models/ViagemManager.js';
-import { FormController } from './controllers/FormController.js';
-import { DashController } from './controllers/DashController.js';
-import { PostController } from './controllers/PostController.js';
+(function (global) {
+  'use strict';
 
-/** @type {ViagemManager|null} Singleton do Model — estado único do localStorage. */
-let viagemManager = null;
+  const {
+    ViagemManager,
+    FormController,
+    DashController,
+    PostController,
+    HistoricoController,
+    ViagemMonitorController,
+  } = global.RotaInteligente;
 
-/** @type {FormController|null} */
-let formController = null;
+  let viagemManager = null;
+  let formController = null;
+  let dashController = null;
+  let postController = null;
+  let historicoController = null;
+  let viagemMonitor = null;
 
-/** @type {DashController|null} */
-let dashController = null;
+  function showToast(msg, tipo = 'success') {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
 
-/** @type {PostController|null} */
-let postController = null;
+    toast.textContent = msg;
+    toast.className = `toast show ${tipo}`;
+    toast.hidden = false;
 
-/**
- * Exibe toast temporário de feedback na UI.
- *
- * @param {string} msg - Mensagem a exibir.
- * @param {'success'|'error'} [tipo='success'] - Variante visual.
- * @returns {void}
- */
-function showToast(msg, tipo = 'success') {
-  const toast = document.getElementById('toast');
-  if (!toast) return;
-
-  toast.textContent = msg;
-  toast.className = `toast show ${tipo}`;
-  toast.hidden = false;
-
-  clearTimeout(showToast._timer);
-  showToast._timer = setTimeout(() => {
-    toast.classList.remove('show');
-    toast.hidden = true;
-  }, 3000);
-}
-
-/**
- * Roteador de abas — alterna painéis visíveis e dispara renderização dos controllers.
- *
- * @param {string} tabId - Identificador da aba: `dashboard` | `lancamento` | `historico` | `postagem`.
- * @returns {void}
- */
-function navigateTo(tabId) {
-  document.querySelectorAll('.tab-panel').forEach((panel) => {
-    const isActive = panel.id === `tab-${tabId}`;
-    panel.classList.toggle('active', isActive);
-    panel.hidden = !isActive;
-  });
-
-  document.querySelectorAll('.nav-item').forEach((btn) => {
-    const isActive = btn.dataset.tab === tabId;
-    btn.classList.toggle('active', isActive);
-    btn.setAttribute('aria-current', isActive ? 'page' : 'false');
-  });
-
-  switch (tabId) {
-    case 'dashboard':
-      dashController?.renderDashboard();
-      break;
-    case 'lancamento':
-      formController?.renderEstado();
-      break;
-    case 'historico':
-      dashController?.renderHistorico();
-      break;
-    case 'postagem':
-      postController?.render();
-      break;
-    default:
-      break;
+    clearTimeout(showToast._timer);
+    showToast._timer = setTimeout(() => {
+      toast.classList.remove('show');
+      toast.hidden = true;
+    }, 3000);
   }
-}
 
-/**
- * Callback executado após salvar gasto — atualiza dashboard e histórico.
- * @returns {void}
- */
-function onGastoSalvo() {
-  dashController?.renderDashboard();
-}
+  function navigateTo(tabId) {
+    document.querySelectorAll('.tab-panel').forEach((panel) => {
+      const isActive = panel.id === `tab-${tabId}`;
+      panel.classList.toggle('active', isActive);
+      panel.hidden = !isActive;
+    });
 
-/**
- * Callback executado após encerrar viagem — prepara aba de postagem.
- *
- * @param {string} viagemId - ID da viagem recém-encerrada.
- * @returns {void}
- */
-function onViagemEncerrada(viagemId) {
-  dashController?.renderTripSelectors();
-  postController?.selecionarViagem(viagemId);
-}
+    document.querySelectorAll('.nav-item').forEach((btn) => {
+      const isActive = btn.dataset.tab === tabId;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-current', isActive ? 'page' : 'false');
+    });
 
-/**
- * Registra listeners da Bottom Navigation.
- * @returns {void}
- */
-function bindNavigation() {
-  document.querySelectorAll('.nav-item').forEach((btn) => {
-    btn.addEventListener('click', () => navigateTo(btn.dataset.tab));
-  });
-}
+    switch (tabId) {
+      case 'dashboard':
+        dashController?.renderDashboard();
+        break;
+      case 'lancamento':
+        formController?.renderEstado();
+        break;
+      case 'historico':
+        historicoController?.render();
+        break;
+      case 'postagem':
+        postController?.render();
+        break;
+      default:
+        break;
+    }
+  }
 
-/**
- * Inicializa a aplicação SPA.
- * Cria Singleton do Model e injeta nos Controllers.
- *
- * @returns {void}
- */
-function bootstrap() {
-  viagemManager = new ViagemManager();
+  function onGastoSalvo() {
+    dashController?.renderDashboard();
+    historicoController?.render();
+  }
 
-  dashController = new DashController(viagemManager, {
+  function onViagemEncerrada(viagemId) {
+    viagemMonitor?.parar();
+    dashController?.renderTripSelectors();
+    historicoController?.render();
+    postController?.selecionarViagem(viagemId);
+  }
+
+  function onViagemIniciada(viagemId) {
+    viagemMonitor?.iniciar(viagemId);
+    dashController?.renderDashboard();
+    historicoController?.render();
+  }
+
+  function onAlertaParada() {
+    dashController?.exibirAlertaParada();
+  }
+
+  function onAutoEncerrar(viagemId) {
+    const result = viagemManager.encerrarViagemAutomatica(viagemId);
+    if (result.sucesso) {
+      showToast('Viagem encerrada automaticamente (inatividade detectada).', 'error');
+      onViagemEncerrada(viagemId);
+      navigateTo('historico');
+    }
+  }
+
+  function bindNavigation() {
+    document.querySelectorAll('.nav-item').forEach((btn) => {
+      btn.addEventListener('click', () => navigateTo(btn.dataset.tab));
+    });
+  }
+
+  function bootstrap() {
+    viagemManager = new ViagemManager();
+
+    viagemMonitor = new ViagemMonitorController(viagemManager, {
+      showToast,
+      onAlertaParada,
+      onAutoEncerrar,
+    });
+
+    dashController = new DashController(viagemManager, {
+      showToast,
+      onNavigate: navigateTo,
+      onViagemEncerrada,
+      onViagemIniciada,
+      viagemMonitor,
+    });
+
+    formController = new FormController(viagemManager, {
+      showToast,
+      onGastoSalvo,
+      onAbrirNovaViagem: () => dashController.openNovaViagemModal(),
+      viagemMonitor,
+    });
+
+    historicoController = new HistoricoController(viagemManager, {
+      showToast,
+      onGastosAlterados: () => dashController?.renderDashboard(),
+    });
+
+    postController = new PostController(viagemManager, { showToast });
+
+    bindNavigation();
+
+    dashController.renderDashboard();
+    formController.renderEstado();
+    historicoController.render();
+    postController.render();
+
+    const viagemAtiva = viagemManager.getViagemAtiva();
+    if (viagemAtiva) {
+      viagemMonitor.iniciar(viagemAtiva.id);
+    }
+  }
+
+  global.RotaInteligente = global.RotaInteligente || {};
+  global.RotaInteligente.app = {
+    get viagemManager() { return viagemManager; },
+    get viagemMonitor() { return viagemMonitor; },
+    navigateTo,
     showToast,
-    onNavigate: navigateTo,
-    onViagemEncerrada,
-  });
+    bootstrap,
+  };
 
-  formController = new FormController(viagemManager, {
-    showToast,
-    onGastoSalvo,
-    onAbrirNovaViagem: () => dashController.openNovaViagemModal(),
-  });
-
-  postController = new PostController(viagemManager, { showToast });
-
-  bindNavigation();
-
-  dashController.renderDashboard();
-  formController.renderEstado();
-  dashController.renderHistorico();
-  postController.render();
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', bootstrap);
-} else {
-  bootstrap();
-}
-
-export { viagemManager, navigateTo, showToast };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootstrap);
+  } else {
+    bootstrap();
+  }
+})(window);
