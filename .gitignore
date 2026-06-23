@@ -1,7 +1,7 @@
 # Dependências
 node_modules/
 
-# Capacitor — pasta web gerada (copiada da raiz)
+# Capacitor — pasta web gerada (cópia da raiz via sync:web)
 www/
 
 # Android / Gradle
@@ -23,5 +23,6 @@ Thumbs.db
 .vscode/
 *.log
 
-# Capacitor cache
+# Capacitor — gerado pelo `npx cap sync`
 .capacitor/
+android/capacitor-cordova-android-plugins/

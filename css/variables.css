@@ -1,61 +1,11 @@
 /**
  * @file variables.css
- * @description Design tokens do RotaInteligente — cores, espaçamentos, tipografia e modo escuro.
+ * @description Design tokens e temas do RotaInteligente — Viva Solar (dia) e Asfalto Night (noite).
  */
 
+/* --- Tokens compartilhados (tipografia, espaçamento, raios base) --- */
 :root {
-  /* --- Cores base (Dark Mode nativo) --- */
-  --color-bg: #0f172a;
-  --color-bg-elevated: #1e293b;
-  --color-bg-card: #1e293b;
-  --color-bg-input: #334155;
-  --color-border: #334155;
-  --color-border-focus: #3b82f6;
-
-  /* --- Texto --- */
-  --color-text: #f1f5f9;
-  --color-text-muted: #94a3b8;
-  --color-text-dim: #64748b;
-
-  /* --- Ações --- */
-  --color-primary: #3b82f6;
-  --color-primary-hover: #2563eb;
-  --color-primary-glow: rgba(59, 130, 246, 0.25);
-  --color-secondary: #475569;
-  --color-secondary-hover: #64748b;
-  --color-danger: #ef4444;
-  --color-danger-hover: #dc2626;
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-star: #fbbf24;
-
-  /* --- Categorias --- */
-  --color-combustivel: #f97316;
-  --color-alimentacao: #22c55e;
-  --color-hospedagem: #8b5cf6;
-  --color-pedagio: #06b6d4;
-  --color-outros: #64748b;
-
-  /* --- Raios --- */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-full: 9999px;
-
-  /* --- Sombras --- */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 20px var(--color-primary-glow);
-
-  /* --- Espaçamentos --- */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-
-  /* --- Tipografia --- */
-  --font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
@@ -63,8 +13,125 @@
   --font-size-xl: 1.5rem;
   --font-size-2xl: 2rem;
 
-  /* --- Layout mobile --- */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-card: 16px;
+  --radius-full: 9999px;
+
   --nav-height: 72px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --transition: 0.2s ease;
+  --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-tap: 0.12s ease;
+
+  /* Categorias (consistentes em ambos os temas) */
+  --color-combustivel: #f97316;
+  --color-alimentacao: #22c55e;
+  --color-hospedagem: #8b5cf6;
+  --color-pedagio: #06b6d4;
+  --color-outros: #64748b;
+  --color-star: #fbbf24;
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+}
+
+/* =============================================================================
+   TEMA DIURNO — Viva Solar (padrão 06h–17h)
+   ============================================================================= */
+.theme-viva-solar {
+  --bg-principal: linear-gradient(135deg, #EBF3FA 0%, #F8F9FA 100%);
+  --card-bg: #FFFFFF;
+
+  --color-bg: #F8F9FA;
+  --color-bg-elevated: #FFFFFF;
+  --color-bg-card: #FFFFFF;
+  --color-bg-input: #F1F5F9;
+  --color-border: rgba(0, 0, 0, 0.06);
+  --color-border-focus: #00B4D8;
+
+  --color-text: #2D3748;
+  --color-text-muted: #4A5568;
+  --color-text-dim: #718096;
+
+  /* Coral — botões de ação principal */
+  --color-primary: #FF7043;
+  --color-primary-hover: #F4511E;
+  --color-primary-glow: rgba(255, 112, 67, 0.28);
+
+  /* Turquesa — navegação e links */
+  --color-nav: #00B4D8;
+  --color-nav-glow: rgba(0, 180, 216, 0.22);
+  --color-link: #00B4D8;
+
+  --color-secondary: #E2E8F0;
+  --color-secondary-hover: #CBD5E0;
+  --color-secondary-text: #2D3748;
+
+  --shadow-sm: 0 2px 8px rgba(0, 60, 90, 0.05);
+  --shadow-md: 0 8px 24px rgba(0, 60, 90, 0.1);
+  --shadow-card: 0 8px 32px rgba(0, 80, 120, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-glow: 0 0 24px var(--color-nav-glow);
+
+  --backdrop-nav: rgba(255, 255, 255, 0.88);
+  --backdrop-modal: rgba(45, 55, 72, 0.45);
+
+  /* Timeline — gradientes dos ícones */
+  --timeline-parada: linear-gradient(135deg, #48CAE4 0%, #00B4D8 50%, #0077B6 100%);
+  --timeline-atracao: linear-gradient(135deg, #6EE7A0 0%, #34D399 50%, #059669 100%);
+  --timeline-restaurante: linear-gradient(135deg, #FFAB91 0%, #FF7043 50%, #E64A19 100%);
+  --timeline-origem: linear-gradient(135deg, #90E0EF 0%, #00B4D8 100%);
+  --timeline-destino: linear-gradient(135deg, #86EFAC 0%, #22C55E 100%);
+}
+
+/* =============================================================================
+   TEMA NOTURNO — Asfalto Night (18h–05h) — painel escuro com neon
+   ============================================================================= */
+.theme-asfalto-night {
+  --bg-principal: linear-gradient(165deg, #070b12 0%, #0f172a 40%, #111827 100%);
+  --card-bg: #1a2332;
+
+  --color-bg: #0f172a;
+  --color-bg-elevated: #1a2332;
+  --color-bg-card: #1a2332;
+  --color-bg-input: #243044;
+  --color-border: rgba(0, 180, 216, 0.12);
+  --color-border-focus: #00B4D8;
+
+  --color-text: #e8f4fc;
+  --color-text-muted: #94a3b8;
+  --color-text-dim: #64748b;
+
+  --color-primary: #FF7043;
+  --color-primary-hover: #ff8a65;
+  --color-primary-glow: rgba(255, 112, 67, 0.35);
+
+  --color-nav: #00D4FF;
+  --color-nav-glow: rgba(0, 212, 255, 0.4);
+  --color-link: #00D4FF;
+
+  --color-secondary: #243044;
+  --color-secondary-hover: #2d3d54;
+  --color-secondary-text: #e2e8f0;
+
+  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.55);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 180, 216, 0.08), 0 0 20px rgba(0, 180, 216, 0.06);
+  --shadow-glow: 0 0 28px var(--color-nav-glow);
+
+  --backdrop-nav: rgba(15, 23, 42, 0.92);
+  --backdrop-modal: rgba(0, 0, 0, 0.78);
+
+  --timeline-parada: linear-gradient(135deg, #00D4FF 0%, #0096C7 100%);
+  --timeline-atracao: linear-gradient(135deg, #4ADE80 0%, #10B981 100%);
+  --timeline-restaurante: linear-gradient(135deg, #FF8A65 0%, #FF5722 100%);
+  --timeline-origem: linear-gradient(135deg, #22D3EE 0%, #0891B2 100%);
+  --timeline-destino: linear-gradient(135deg, #34D399 0%, #059669 100%);
 }

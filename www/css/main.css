@@ -19,11 +19,13 @@ html {
 
 body {
   font-family: var(--font-family);
-  background: var(--color-bg);
+  background: var(--bg-principal, var(--color-bg));
+  background-attachment: fixed;
   color: var(--color-text);
   line-height: 1.5;
   min-height: 100dvh;
   overflow-x: hidden;
+  transition: background 0.4s ease, color 0.3s ease;
 }
 
 #app {
@@ -56,8 +58,12 @@ body {
 .panel-header { margin-bottom: var(--spacing-lg); }
 .panel-header h1 {
   font-size: var(--font-size-xl);
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--color-text) 0%, var(--color-nav, var(--color-primary)) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .subtitle {
   color: var(--color-text-muted);
@@ -67,12 +73,13 @@ body {
 
 /* --- Cards base --- */
 .card {
-  background: var(--color-bg-card);
+  background: var(--card-bg, var(--color-bg-card));
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-card, var(--radius-lg));
   padding: var(--spacing-md);
   margin-bottom: var(--spacing-md);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card, var(--shadow-sm));
+  transition: box-shadow var(--transition), transform var(--transition-tap);
 }
 .card-title {
   font-size: var(--font-size-base);
@@ -120,7 +127,7 @@ textarea {
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 3px var(--color-primary-glow);
+  box-shadow: 0 0 0 3px var(--color-nav-glow, var(--color-primary-glow));
 }
 textarea { resize: vertical; min-height: 80px; }
 select {
@@ -141,7 +148,7 @@ select {
 .checkbox-label input[type="checkbox"] {
   width: 18px;
   height: 18px;
-  accent-color: var(--color-primary);
+  accent-color: var(--color-nav, var(--color-primary));
   cursor: pointer;
 }
 
@@ -153,19 +160,32 @@ select {
   gap: var(--spacing-sm);
   padding: 12px 20px;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   font-size: var(--font-size-base);
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--transition), transform 0.1s ease;
+  transition: background var(--transition), transform var(--transition-tap), box-shadow var(--transition);
   -webkit-tap-highlight-color: transparent;
   text-decoration: none;
+  user-select: none;
 }
-.btn:active { transform: scale(0.97); }
-.btn-primary { background: var(--color-primary); color: #fff; }
-.btn-primary:hover { background: var(--color-primary-hover); }
-.btn-secondary { background: var(--color-secondary); color: var(--color-text); }
+.btn:active {
+  transform: scale(0.98);
+}
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 4px 14px var(--color-primary-glow);
+}
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+  box-shadow: 0 6px 20px var(--color-primary-glow);
+}
+.btn-secondary {
+  background: var(--color-secondary);
+  color: var(--color-secondary-text, var(--color-text));
+}
 .btn-secondary:hover { background: var(--color-secondary-hover); }
 .btn-danger { background: var(--color-danger); color: #fff; }
 .btn-danger:hover { background: var(--color-danger-hover); }
@@ -182,13 +202,15 @@ select {
   max-width: 480px;
   height: calc(var(--nav-height) + var(--safe-bottom));
   padding-bottom: var(--safe-bottom);
-  background: var(--color-bg-elevated);
+  background: var(--backdrop-nav, var(--color-bg-elevated));
   border-top: 1px solid var(--color-border);
   display: flex;
   justify-content: space-around;
   align-items: center;
   z-index: 100;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.06);
 }
 .nav-item {
   display: flex;
@@ -200,11 +222,16 @@ select {
   color: var(--color-text-dim);
   cursor: pointer;
   padding: var(--spacing-sm) var(--spacing-md);
-  transition: color var(--transition);
+  transition: color var(--transition), transform var(--transition-tap);
   font-family: inherit;
   min-width: 64px;
+  border-radius: var(--radius-md);
 }
-.nav-item.active { color: var(--color-primary); }
+.nav-item:active { transform: scale(0.98); }
+.nav-item.active {
+  color: var(--color-nav, var(--color-primary));
+  text-shadow: 0 0 20px var(--color-nav-glow, transparent);
+}
 .nav-icon { font-size: 1.25rem; }
 .nav-label { font-size: var(--font-size-xs); font-weight: 500; }
 
@@ -218,14 +245,15 @@ select {
   width: 400px;
 }
 .modal::backdrop {
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
+  background: var(--backdrop-modal, rgba(0, 0, 0, 0.7));
+  backdrop-filter: blur(6px);
 }
 .modal-content {
-  background: var(--color-bg-elevated);
+  background: var(--card-bg, var(--color-bg-elevated));
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-card, var(--radius-lg));
   padding: var(--spacing-lg);
+  box-shadow: var(--shadow-md);
 }
 .modal-content h2 { font-size: var(--font-size-lg); margin-bottom: var(--spacing-md); }
 .modal-desc { color: var(--color-text-muted); font-size: var(--font-size-sm); margin-bottom: var(--spacing-md); }

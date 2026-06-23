@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Anel externo da bússola -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M54,22 A32,32 0 1,0 54,86 A32,32 0 1,0 54,22"
+        android:strokeWidth="3.5"
+        android:strokeColor="#00B4D8" />
+
+    <!-- Marcadores cardinais -->
+    <path
+        android:fillColor="#00B4D8"
+        android:pathData="M54,24 L52,29 L56,29 Z" />
+    <path
+        android:fillColor="#3300B4D8"
+        android:pathData="M82,54 L77,52 L77,56 Z" />
+    <path
+        android:fillColor="#3300B4D8"
+        android:pathData="M54,84 L56,79 L52,79 Z" />
+    <path
+        android:fillColor="#3300B4D8"
+        android:pathData="M26,54 L31,56 L31,52 Z" />
+
+    <!-- Agulha norte (coral) -->
+    <path
+        android:fillColor="#FF7043"
+        android:pathData="M54,30 L60,54 L54,49 L48,54 Z" />
+
+    <!-- Agulha sul (turquesa) -->
+    <path
+        android:fillColor="#00B4D8"
+        android:pathData="M54,78 L48,54 L54,59 L60,54 Z" />
+
+    <!-- Pin de localização integrado -->
+    <path
+        android:fillColor="#FF7043"
+        android:pathData="M54,62 C49.5,62 46,65.2 46,69.2 C46,74 54,84 54,84 C54,84 62,74 62,69.2 C62,65.2 58.5,62 54,62 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,69 m-3,0 a3,3 0 1,1 6,0 a3,3 0 1,1 -6,0" />
+
+    <!-- Centro da bússola -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,54 m-5,0 a5,5 0 1,1 10,0 a5,5 0 1,1 -10,0" />
+    <path
+        android:fillColor="#FF7043"
+        android:pathData="M54,54 m-2.5,0 a2.5,2.5 0 1,1 5,0 a2.5,2.5 0 1,1 -5,0" />
+
+</vector>

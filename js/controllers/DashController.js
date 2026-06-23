@@ -139,10 +139,12 @@
       const itens = timeline.map((p) => `
         <li class="timeline-item timeline-${p.tipo}">
           <span class="timeline-km">${p.km} km</span>
+          <span class="timeline-icone" aria-hidden="true">${this._iconeTimeline(p.tipo)}</span>
           <div class="timeline-corpo">
-            <span class="timeline-icone" aria-hidden="true">${this._iconeTimeline(p.tipo)}</span>
-            <strong class="timeline-titulo">${escapeHtml(p.titulo)}</strong>
-            <p class="timeline-descricao">${escapeHtml(p.descricao)}</p>
+            <div class="timeline-corpo-inner">
+              <strong class="timeline-titulo">${escapeHtml(p.titulo)}</strong>
+              <p class="timeline-descricao">${escapeHtml(p.descricao)}</p>
+            </div>
           </div>
         </li>
       `).join('');

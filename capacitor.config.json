@@ -1,5 +1,5 @@
 {
-  "appId": "com.rotainteligente.app",
+  "appId": "com.edmargasjunior.rotainteligente",
   "appName": "RotaInteligente",
   "webDir": "www",
   "server": {
@@ -11,7 +11,17 @@
   },
   "plugins": {
     "Geolocation": {
-      "permissions": ["location"]
+      "permissions": [
+        "location"
+      ]
+    },
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "launchAutoHide": true,
+      "launchFadeOutDuration": 500,
+      "backgroundColor": "#EBF3FA",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER"
     }
   }
 }

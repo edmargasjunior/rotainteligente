@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="RotaInteligente — Gestão e Inteligência de Viagem offline-first">
   <meta name="theme-color" content="#0f172a">
+  <meta name="ri-tracking-base" content="https://usuario.github.io/rotainteligente/">
   <title>RotaInteligente</title>
   <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/main.css">
@@ -15,6 +16,22 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
 </head>
 <body>
+<script>
+(function () {
+  try {
+    var raw = localStorage.getItem('ri_theme_prefs');
+    var prefs = raw ? JSON.parse(raw) : { auto: true, manual: 'theme-viva-solar' };
+    var auto = prefs.auto !== false;
+    var h = new Date().getHours();
+    var tema = auto
+      ? (h >= 6 && h <= 17 ? 'theme-viva-solar' : 'theme-asfalto-night')
+      : (prefs.manual || 'theme-viva-solar');
+    document.body.className = tema;
+  } catch (e) {
+    document.body.className = 'theme-viva-solar';
+  }
+})();
+</script>
   <div id="app">
 
     <!-- Toast de feedback -->
@@ -29,18 +46,52 @@
           <p class="subtitle">Gestão inteligente da sua viagem</p>
         </header>
 
+        <details class="card settings-theme-card" id="settings-tema">
+          <summary>🎨 Aparência e Tema</summary>
+          <div class="settings-theme-body">
+            <label class="checkbox-label">
+              <input type="checkbox" id="input-tema-automatico" checked>
+              <span>Alternar tema automaticamente por horário</span>
+            </label>
+            <div class="field" style="margin-top: 12px; margin-bottom: 0;">
+              <label for="select-tema-manual">Tema manual</label>
+              <select id="select-tema-manual" disabled>
+                <option value="theme-viva-solar">☀️ Viva Solar (dia)</option>
+                <option value="theme-asfalto-night">🌙 Asfalto Night (noite)</option>
+              </select>
+              <p class="settings-theme-hint">Desmarque a opção acima para escolher o tema fixo.</p>
+            </div>
+          </div>
+        </details>
+
         <div id="dashboard-empty" class="card empty-state">
           <div class="empty-icon" aria-hidden="true">🧭</div>
           <p>Nenhuma viagem ativa. Comece registrando sua aventura!</p>
           <button type="button" class="btn btn-primary" id="btn-nova-viagem-empty">Iniciar Nova Viagem</button>
+          <button type="button" class="btn btn-secondary" id="btn-instantanea-empty">⚡ Viagem Instantânea</button>
         </div>
 
         <div id="dashboard-content" class="hidden">
+          <div class="card trip-monitor-card" id="card-trip-monitor">
+            <div class="trip-monitor-row">
+              <span class="trip-monitor-status" id="trip-status-atual">Em movimento</span>
+              <span class="trip-monitor-duracao" id="trip-duracao">0min</span>
+            </div>
+            <div class="trip-monitor-actions">
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-iniciar-parada">Iniciar Parada</button>
+              <button type="button" class="btn btn-primary btn-sm" id="btn-enviar-rastreio">Enviar Atualização de Rota</button>
+            </div>
+            <div class="field field-inline">
+              <label for="input-contato-seguranca">Contato Segurança (WhatsApp)</label>
+              <input type="tel" id="input-contato-seguranca" placeholder="Ex: 5531999999999" autocomplete="off">
+            </div>
+          </div>
           <div class="card trip-selector-card">
             <label for="select-viagem-ativa">Viagem Ativa</label>
             <select id="select-viagem-ativa" aria-label="Selecionar viagem ativa"></select>
             <div class="trip-actions">
               <button type="button" class="btn btn-secondary btn-sm" id="btn-nova-viagem">+ Nova Viagem</button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-viagem-instantanea">⚡ Instantânea</button>
               <button type="button" class="btn btn-danger btn-sm" id="btn-encerrar-viagem">Encerrar Viagem</button>
             </div>
           </div>
@@ -49,6 +100,11 @@
             <span class="highlight-label">Gasto Total Acumulado</span>
             <span class="highlight-value" id="total-geral" aria-live="polite">R$ 0,00</span>
             <span class="highlight-meta" id="distancia-info">0 km percorridos</span>
+          </div>
+
+          <div id="card-planejamento" class="card planejamento-card hidden">
+            <h2 class="card-title">Curador de Trajetos — Guia de Bordo</h2>
+            <div id="planejamento-conteudo"></div>
           </div>
 
           <div class="metrics-grid">
@@ -233,12 +289,20 @@
       <section id="tab-historico" class="tab-panel" role="tabpanel" aria-labelledby="nav-historico" hidden>
         <header class="panel-header">
           <h1>Histórico</h1>
-          <p class="subtitle">Gastos da viagem ativa</p>
+          <p class="subtitle">Todas as viagens — ativas e encerradas</p>
         </header>
-        <ul id="lista-historico" class="historico-list" aria-label="Lista de gastos"></ul>
+
+        <div id="secao-gastos-ativos" class="card hidden">
+          <h2 class="card-title">Gastos — Viagem Ativa</h2>
+          <ul id="lista-gastos-ativos" class="historico-list" aria-label="Gastos da viagem ativa"></ul>
+        </div>
+
+        <h2 class="section-title">Suas Viagens</h2>
+        <div id="lista-viagens-historico" class="viagens-grid" aria-label="Lista de viagens"></div>
+
         <div id="historico-empty" class="card empty-state hidden">
           <div class="empty-icon" aria-hidden="true">📋</div>
-          <p>Nenhum gasto registrado nesta viagem.</p>
+          <p>Nenhuma viagem registrada ainda.</p>
         </div>
       </section>
 
@@ -303,11 +367,90 @@
           <label for="input-km-inicial">KM Inicial do Painel</label>
           <input type="text" id="input-km-inicial" inputmode="decimal" placeholder="Ex: 45.000" required autocomplete="off">
         </div>
+        <label class="checkbox-label">
+          <input type="checkbox" id="input-tanque-saiu-cheio" checked>
+          <span>Tanque saiu cheio da garagem?</span>
+        </label>
+        <div class="field">
+          <label for="select-trajeto-curado">Trajeto Curado</label>
+          <select id="select-trajeto-curado" required>
+            <option value="">Selecione um trajeto...</option>
+          </select>
+          <p class="field-hint">Rotas consagradas com guia de bordo quilométrico (offline).</p>
+        </div>
+        <div class="field">
+          <label for="select-tipo-rota">Tipo de Rota</label>
+          <select id="select-tipo-rota" required>
+            <option value="direta">Rota Direta — menor tempo e distância</option>
+            <option value="conforto">Rota Conforto/Turística (Premium) — Slow Travel</option>
+          </select>
+        </div>
+        <fieldset class="field tags-preferencia-field">
+          <legend>Preferências de Paradas (filtros)</legend>
+          <div id="tags-preferencia" class="tags-preferencia"></div>
+        </fieldset>
+        <div id="preview-rota-curador" class="preview-rota-conforto hidden" aria-live="polite"></div>
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary" id="btn-cancelar-viagem">Cancelar</button>
           <button type="submit" class="btn btn-primary">Iniciar Viagem</button>
         </div>
       </form>
+    </dialog>
+
+    <!-- Modal: Viagem Instantânea -->
+    <dialog id="modal-viagem-instantanea" class="modal">
+      <form id="form-viagem-instantanea" method="dialog" class="modal-content">
+        <h2>⚡ Viagem Instantânea</h2>
+        <div id="alerta-instantanea" class="alerta-instantanea" role="alert">
+          <strong>Atenção:</strong> Destino e KM Inicial são opcionais, mas sem eles os relatórios de consumo e distância podem ficar <strong>imprecisos</strong> até você encerrar com o KM final do painel.
+        </div>
+        <div class="field">
+          <label for="input-nome-instantanea">Nome da Viagem</label>
+          <input type="text" id="input-nome-instantanea" placeholder="Ex: Ida ao mercado" required autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="select-veiculo-instantanea">Veículo</label>
+          <select id="select-veiculo-instantanea" required>
+            <option value="carro">Carro</option>
+            <option value="moto">Moto</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="input-destino-instantanea">Destino <span class="opcional">(opcional)</span></label>
+          <input type="text" id="input-destino-instantanea" placeholder="Ex: Juiz de Fora" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="input-km-instantanea">KM Inicial <span class="opcional">(opcional)</span></label>
+          <input type="text" id="input-km-instantanea" inputmode="decimal" placeholder="Ex: 45.000" autocomplete="off">
+          <p class="field-hint">Se vazio: usa GPS ou Residência + KM da última viagem encerrada.</p>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="btn-cancelar-instantanea">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Iniciar Agora</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- Modal: Alerta de Parada (Breakpoint) -->
+    <dialog id="modal-alerta-parada" class="modal">
+      <div class="modal-content">
+        <h2>🛑 Você parou?</h2>
+        <p class="modal-desc">Detectamos que seu veículo está parado há 5 minutos. Deseja encerrar a viagem?</p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="btn-continuar-viagem">Continuar Viagem</button>
+          <button type="button" class="btn btn-danger" id="btn-encerrar-por-parada">Encerrar Viagem</button>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- Modal: Detalhe Viagem Encerrada (Read-only) -->
+    <dialog id="modal-detalhe-viagem" class="modal modal-lg">
+      <div class="modal-content">
+        <div id="detalhe-viagem-conteudo"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="btn-fechar-detalhe">Fechar</button>
+        </div>
+      </div>
     </dialog>
 
     <!-- Modal: Encerrar Viagem -->
@@ -328,6 +471,19 @@
 
   </div>
 
-  <script type="module" src="js/app.js"></script>
+  <!-- Utilities -->
+  <script src="js/utils/formatters.js"></script>
+  <script src="js/utils/geo.js"></script>
+  <!-- Model -->
+  <script src="js/models/ViagemManager.js"></script>
+  <!-- Controllers -->
+  <script src="js/controllers/RotaConfortoController.js"></script>
+  <script src="js/controllers/ViagemMonitorController.js"></script>
+  <script src="js/controllers/HistoricoController.js"></script>
+  <script src="js/controllers/FormController.js"></script>
+  <script src="js/controllers/DashController.js"></script>
+  <script src="js/controllers/PostController.js"></script>
+  <!-- App -->
+  <script src="js/app.js"></script>
 </body>
 </html>

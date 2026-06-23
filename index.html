@@ -16,6 +16,22 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
 </head>
 <body>
+<script>
+(function () {
+  try {
+    var raw = localStorage.getItem('ri_theme_prefs');
+    var prefs = raw ? JSON.parse(raw) : { auto: true, manual: 'theme-viva-solar' };
+    var auto = prefs.auto !== false;
+    var h = new Date().getHours();
+    var tema = auto
+      ? (h >= 6 && h <= 17 ? 'theme-viva-solar' : 'theme-asfalto-night')
+      : (prefs.manual || 'theme-viva-solar');
+    document.body.className = tema;
+  } catch (e) {
+    document.body.className = 'theme-viva-solar';
+  }
+})();
+</script>
   <div id="app">
 
     <!-- Toast de feedback -->
@@ -29,6 +45,24 @@
           <h1>RotaInteligente</h1>
           <p class="subtitle">Gestão inteligente da sua viagem</p>
         </header>
+
+        <details class="card settings-theme-card" id="settings-tema">
+          <summary>🎨 Aparência e Tema</summary>
+          <div class="settings-theme-body">
+            <label class="checkbox-label">
+              <input type="checkbox" id="input-tema-automatico" checked>
+              <span>Alternar tema automaticamente por horário</span>
+            </label>
+            <div class="field" style="margin-top: 12px; margin-bottom: 0;">
+              <label for="select-tema-manual">Tema manual</label>
+              <select id="select-tema-manual" disabled>
+                <option value="theme-viva-solar">☀️ Viva Solar (dia)</option>
+                <option value="theme-asfalto-night">🌙 Asfalto Night (noite)</option>
+              </select>
+              <p class="settings-theme-hint">Desmarque a opção acima para escolher o tema fixo.</p>
+            </div>
+          </div>
+        </details>
 
         <div id="dashboard-empty" class="card empty-state">
           <div class="empty-icon" aria-hidden="true">🧭</div>

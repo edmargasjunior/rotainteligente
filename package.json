@@ -9,8 +9,7 @@
     "cap:copy": "npm run sync:web && npx cap copy",
     "cap:open:android": "npm run cap:sync && npx cap open android",
     "cap:run:android": "npm run cap:sync && npx cap run android",
-    "cap:build:android": "npm run cap:sync && cd android && .\\gradlew.bat assembleDebug",
-    "postinstall": "npm run sync:web"
+    "cap:build:android": "npm run cap:sync && cd android && .\\gradlew.bat assembleDebug"
   },
   "keywords": [
     "viagem",
@@ -21,11 +20,21 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@capacitor/android": "^7.0.0",
-    "@capacitor/core": "^7.0.0",
-    "@capacitor/geolocation": "^7.0.0"
+    "@capacitor/android": "^7.6.7",
+    "@capacitor/core": "^7.6.7",
+    "@capacitor/geolocation": "^7.0.0",
+    "@capacitor/splash-screen": "^7.0.0"
   },
   "devDependencies": {
-    "@capacitor/cli": "^7.0.0"
-  }
+    "@capacitor/cli": "^7.6.7"
+  },
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/edmargasjunior/rotainteligente.git"
+  },
+  "bugs": {
+    "url": "https://github.com/edmargasjunior/rotainteligente/issues"
+  },
+  "homepage": "https://github.com/edmargasjunior/rotainteligente#readme"
 }

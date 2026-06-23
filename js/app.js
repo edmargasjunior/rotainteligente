@@ -16,6 +16,102 @@
     ViagemMonitorController,
   } = global.RotaInteligente;
 
+  const THEME_STORAGE_KEY = 'ri_theme_prefs';
+  const TEMA_SOLAR = 'theme-viva-solar';
+  const TEMA_NOITE = 'theme-asfalto-night';
+  const TEMAS_VALIDOS = [TEMA_SOLAR, TEMA_NOITE];
+
+  /**
+   * Lê preferências de tema do localStorage.
+   * @returns {{ auto: boolean, manual: string }}
+   */
+  function getThemePrefs() {
+    try {
+      const raw = localStorage.getItem(THEME_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        return {
+          auto: parsed.auto !== false,
+          manual: TEMAS_VALIDOS.includes(parsed.manual) ? parsed.manual : TEMA_SOLAR,
+        };
+      }
+    } catch { /* fallback */ }
+    return { auto: true, manual: TEMA_SOLAR };
+  }
+
+  /**
+   * Persiste preferências de tema.
+   * @param {{ auto: boolean, manual: string }} prefs
+   */
+  function saveThemePrefs(prefs) {
+    localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(prefs));
+  }
+
+  /**
+   * Aplica classe de tema no body e atualiza theme-color.
+   * @param {string} nomeTema
+   */
+  function aplicarTema(nomeTema) {
+    const tema = TEMAS_VALIDOS.includes(nomeTema) ? nomeTema : TEMA_SOLAR;
+    document.body.className = tema;
+
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      meta.content = tema === TEMA_SOLAR ? '#EBF3FA' : '#0f172a';
+    }
+  }
+
+  /**
+   * Ciclo solar automático — 06h–17h Viva Solar; 18h–05h Asfalto Night.
+   * Respeita preferência manual quando "auto" está desmarcado.
+   */
+  function verificarCicloSolarTema() {
+    const prefs = getThemePrefs();
+
+    if (prefs.auto) {
+      const hora = new Date().getHours();
+      const tema = (hora >= 6 && hora <= 17) ? TEMA_SOLAR : TEMA_NOITE;
+      aplicarTema(tema);
+      return;
+    }
+
+    aplicarTema(prefs.manual);
+  }
+
+  /**
+   * Vincula controles de aparência no Dashboard.
+   */
+  function initThemeSettings() {
+    const chkAuto = document.getElementById('input-tema-automatico');
+    const selectManual = document.getElementById('select-tema-manual');
+    if (!chkAuto || !selectManual) return;
+
+    const prefs = getThemePrefs();
+    chkAuto.checked = prefs.auto;
+    selectManual.value = prefs.manual;
+    selectManual.disabled = prefs.auto;
+
+    chkAuto.addEventListener('change', () => {
+      const auto = chkAuto.checked;
+      selectManual.disabled = auto;
+      saveThemePrefs({ auto, manual: selectManual.value });
+      verificarCicloSolarTema();
+    });
+
+    selectManual.addEventListener('change', () => {
+      chkAuto.checked = false;
+      selectManual.disabled = false;
+      saveThemePrefs({ auto: false, manual: selectManual.value });
+      verificarCicloSolarTema();
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && getThemePrefs().auto) {
+        verificarCicloSolarTema();
+      }
+    });
+  }
+
   let viagemManager = null;
   let formController = null;
   let dashController = null;
@@ -106,7 +202,19 @@
     });
   }
 
+  /**
+   * Oculta a splash nativa do Capacitor com fade suave quando a UI estiver pronta.
+   */
+  function esconderSplashNativo() {
+    const splash = global.Capacitor?.Plugins?.SplashScreen;
+    if (!splash) return;
+    splash.hide({ fadeOutDuration: 500 }).catch(function () { /* Web / file:// */ });
+  }
+
   function bootstrap() {
+    verificarCicloSolarTema();
+    initThemeSettings();
+
     viagemManager = new ViagemManager();
 
     viagemMonitor = new ViagemMonitorController(viagemManager, {
@@ -144,6 +252,8 @@
     historicoController.render();
     postController.render();
 
+    esconderSplashNativo();
+
     const viagemAtiva = viagemManager.getViagemAtiva();
     if (viagemAtiva) {
       viagemMonitor.iniciar(viagemAtiva.id);
@@ -157,6 +267,10 @@
     navigateTo,
     showToast,
     bootstrap,
+    verificarCicloSolarTema,
+    aplicarTema,
+    getThemePrefs,
+    saveThemePrefs,
   };
 
   if (document.readyState === 'loading') {
